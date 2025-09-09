@@ -1,0 +1,5 @@
+{
+  "name": "Magic Canvas",
+  "description": "An AI-powered image editor. Draw, paint, and chat to generate and edit images with AI assistance, combining multiple images and prompts to bring your vision to life.",
+  "requestFramePermissions": []
+}
