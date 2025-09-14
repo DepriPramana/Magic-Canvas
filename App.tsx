@@ -5,6 +5,7 @@ import CanvasArea from './components/CanvasArea';
 import AIAssistant from './components/AIAssistant';
 import LayersPanel from './components/LayersPanel';
 import TextToolbar from './components/TextToolbar';
+import ConfirmationDialog from './components/ConfirmationDialog';
 import type { CanvasElement, ChatMessage, CanvasAreaHandle, Layer, CanvasGroup, CanvasImageElement, CanvasTextElement } from './types';
 import { Tool } from './types';
 import { generateImage, removeBackground } from './services/geminiService';
@@ -92,6 +93,7 @@ const App: React.FC = () => {
   const [sidebarWidth, setSidebarWidth] = useState(380);
   const [layersPanelHeight, setLayersPanelHeight] = useState(300);
   const [isShiftPressed, setIsShiftPressed] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
   const drawingCanvasRef = useRef<HTMLCanvasElement>(null);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
@@ -115,8 +117,7 @@ const App: React.FC = () => {
     return descendants;
   }, [layers]);
 
-
-  const handleDeleteSelected = useCallback(() => {
+  const executeDelete = useCallback(() => {
     if (selectedIds.length > 0) {
       const idsToDelete = new Set(selectedIds);
       selectedIds.forEach(id => {
@@ -125,7 +126,14 @@ const App: React.FC = () => {
       setLayers(prev => prev.filter(l => !idsToDelete.has(l.id)));
       setSelectedIds([]);
     }
+    setShowDeleteConfirm(false);
   }, [selectedIds, setLayers, getDescendantIds]);
+
+  const handleDeleteSelected = useCallback(() => {
+    if (selectedIds.length > 0) {
+      setShowDeleteConfirm(true);
+    }
+  }, [selectedIds.length]);
   
   const clearDrawing = useCallback(() => {
     const event = new CustomEvent('clearDrawing');
@@ -256,6 +264,7 @@ const App: React.FC = () => {
       fontWeight: 'normal',
       fontStyle: 'normal',
       textDecoration: 'none',
+      align: 'center',
       visible: true,
       // Text Effects Defaults
       shadowEnabled: false,
@@ -510,12 +519,15 @@ const App: React.FC = () => {
 
 
   const handleToggleVisibility = (id: string) => {
-    const idsToToggle = new Set([id, ...getDescendantIds(id)]);
+    const targetLayer = layers.find(l => l.id === id);
+    if (!targetLayer) return;
+
+    const newVisibility = !targetLayer.visible;
+    const idsToUpdate = new Set([id, ...getDescendantIds(id)]);
+
     setLayers(prev => prev.map(l => {
-        if (idsToToggle.has(l.id)) {
-            if (l.id === id) {
-                return { ...l, visible: !l.visible };
-            }
+        if (idsToUpdate.has(l.id)) {
+            return { ...l, visible: newVisibility };
         }
         return l;
     }));
@@ -620,10 +632,25 @@ const App: React.FC = () => {
               newLayers = newLayers.map(l => {
                   if (l.parentId === groupId) {
                       newSelection.push(l.id);
-                      // FIX: Create a copy of the layer and remove parentId.
-                      // Using destructuring is safer for preserving discriminated union types.
-                      const { parentId, ...rest } = l;
-                      return rest;
+                      // FIX: Using the rest operator on a discriminated union can cause TypeScript to lose type information.
+                      // Using a switch statement preserves the type when removing the `parentId` property.
+                      switch (l.type) {
+                        case 'image': {
+                          const newLayer = { ...l };
+                          delete newLayer.parentId;
+                          return newLayer;
+                        }
+                        case 'text': {
+                          const newLayer = { ...l };
+                          delete newLayer.parentId;
+                          return newLayer;
+                        }
+                        case 'group': {
+                          const newLayer = { ...l };
+                          delete newLayer.parentId;
+                          return newLayer;
+                        }
+                      }
                   }
                   return l;
               }).filter(l => l.id !== groupId);
@@ -731,6 +758,7 @@ const App: React.FC = () => {
               onSaveImage={handleSaveImage}
               drawingColor={drawingColor}
               onDrawingColorChange={setDrawingColor}
+              hasSelection={selectedIds.length > 0}
             />
             <CanvasArea
               ref={canvasAreaRef}
@@ -781,6 +809,14 @@ const App: React.FC = () => {
             />
         </aside>
       </div>
+      <ConfirmationDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={executeDelete}
+        title="Delete Elements"
+      >
+        <p>Are you sure you want to delete {selectedIds.length} selected {selectedIds.length === 1 ? 'element' : 'elements'}? This action can be undone.</p>
+      </ConfirmationDialog>
     </div>
   );
 };

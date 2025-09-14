@@ -327,6 +327,7 @@ const CanvasArea = React.forwardRef<CanvasAreaHandle, CanvasAreaProps>(({
                 fontWeight: el.fontWeight,
                 fontStyle: el.fontStyle,
                 textDecoration: el.textDecoration,
+                textAlign: el.align,
                 lineHeight: 1.1,
             };
             if (el.shadowEnabled) {
@@ -427,10 +428,10 @@ const CanvasArea = React.forwardRef<CanvasAreaHandle, CanvasAreaProps>(({
               ev.target.style.transform = `translate(${ev.drag.beforeTranslate[0]}px, ${ev.drag.beforeTranslate[1]}px) rotate(${el?.rotation || 0}deg)`;
             });
           }}
+          // FIX: The properties `width`, `height`, and `drag` on the `onResizeEnd` event are located
+          // on the `lastEvent` property. Access them via `e.lastEvent` after a null check.
           onResizeEnd={e => {
-            // FIX: The `lastEvent` can be an `OnResizeStart` event, which doesn't have `width`, `height`, or `drag` with position data.
-            // Add a type guard to ensure we are handling an `OnResize` event before accessing these properties.
-            if (e.lastEvent && 'width' in e.lastEvent && 'height' in e.lastEvent && 'drag' in e.lastEvent) {
+            if (e.lastEvent && 'width' in e.lastEvent && 'height' in e.lastEvent && e.lastEvent.drag) {
               const el = elements.find(el => el.id === e.target.id);
               if (!el) return;
               

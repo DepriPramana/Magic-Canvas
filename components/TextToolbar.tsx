@@ -88,6 +88,30 @@ const TextToolbar: React.FC<TextToolbarProps> = ({ selectedElement, onUpdate }) 
 
       <div className="h-6 w-px bg-gray-300" />
       
+      {/* ALIGNMENT */}
+      <div className="flex items-center gap-1">
+        <StyleButton
+          icon={ICONS.align_left}
+          label="Align Left"
+          isActive={selectedElement.align === 'left'}
+          onClick={() => onUpdate({ align: 'left' })}
+        />
+        <StyleButton
+          icon={ICONS.align_center}
+          label="Align Center"
+          isActive={selectedElement.align === 'center'}
+          onClick={() => onUpdate({ align: 'center' })}
+        />
+        <StyleButton
+          icon={ICONS.align_right}
+          label="Align Right"
+          isActive={selectedElement.align === 'right'}
+          onClick={() => onUpdate({ align: 'right' })}
+        />
+      </div>
+      
+      <div className="h-6 w-px bg-gray-300" />
+      
       {/* SIZE */}
       <div className="flex items-center gap-2">
         <label htmlFor="font-size" className="text-sm text-gray-600">Size:</label>

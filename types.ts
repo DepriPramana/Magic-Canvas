@@ -28,6 +28,7 @@ export interface CanvasTextElement {
   fontWeight: 'normal' | 'bold';
   fontStyle: 'normal' | 'italic';
   textDecoration: 'none' | 'underline';
+  align: 'left' | 'center' | 'right';
   visible: boolean;
   parentId?: string;
   // Text Effects

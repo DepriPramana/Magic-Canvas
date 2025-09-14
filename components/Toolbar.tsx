@@ -17,6 +17,7 @@ interface ToolbarProps {
   onSaveImage: () => void;
   drawingColor: string;
   onDrawingColorChange: (color: string) => void;
+  hasSelection: boolean;
 }
 
 const ToolButton: React.FC<{
@@ -53,6 +54,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
     onSaveImage,
     drawingColor,
     onDrawingColorChange,
+    hasSelection,
 }) => {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -134,6 +136,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
         label="Delete Selected"
         isActive={false}
         onClick={onDeleteSelected}
+        disabled={!hasSelection}
       />
       <hr className="my-1 border-gray-200"/>
       <button
